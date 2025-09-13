@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 // app/page.tsx
 import Link from 'next/link';
 import { supabaseAdmin } from '../lib/supabase';
@@ -52,11 +53,12 @@ async function fetchUsers(params: {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const page = Number(searchParams.page ?? 1) || 1;
-  const perPage = Math.min(100, Number(searchParams.perPage ?? 25) || 25);
-  const email = (searchParams.email as string) || '';
+  const sp = await searchParams; // <-- this now matches Next 15.4.x
+  const page = Number(sp.page ?? 1) || 1;
+  const perPage = Math.min(100, Number(sp.perPage ?? 25) || 25);
+  const email = (sp.email as string) || '';
 
   const { users, total } = await fetchUsers({ page, perPage, email });
 
