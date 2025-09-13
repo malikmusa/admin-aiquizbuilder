@@ -1,0 +1,102 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.quiz_attempts (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  quiz_id text NOT NULL,
+  quiz_title text,
+  user_id uuid,
+  taker_id text,
+  score integer NOT NULL,
+  total_questions integer NOT NULL,
+  attempt_date timestamp with time zone DEFAULT now(),
+  taker_name text,
+  questions_data jsonb,
+  user_answers jsonb,
+  time_taken bigint,
+  completed_at timestamp with time zone,
+  percentage_score integer,
+  question_timings jsonb,
+  browser_info jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT quiz_attempts_pkey PRIMARY KEY (id),
+  CONSTRAINT quiz_attempts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.quiz_question_attempts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  attempt_id uuid,
+  quiz_id uuid,
+  question_index integer NOT NULL,
+  question_type character varying NOT NULL,
+  question_text text NOT NULL,
+  question_options jsonb,
+  correct_answer text,
+  correct_answers jsonb,
+  user_answer jsonb,
+  is_correct boolean NOT NULL DEFAULT false,
+  points_earned integer DEFAULT 0,
+  time_spent bigint,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT quiz_question_attempts_pkey PRIMARY KEY (id),
+  CONSTRAINT quiz_question_attempts_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES public.quizzes(id),
+  CONSTRAINT quiz_question_attempts_attempt_id_fkey FOREIGN KEY (attempt_id) REFERENCES public.quiz_attempts(id)
+);
+CREATE TABLE public.quizzes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone DEFAULT now(),
+  title text,
+  content_source text,
+  difficulty text,
+  question_count integer,
+  questions_data jsonb,
+  user_id uuid,
+  quiz_type character varying DEFAULT 'mix'::character varying,
+  CONSTRAINT quizzes_pkey PRIMARY KEY (id),
+  CONSTRAINT quizzes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.user_subscriptions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL UNIQUE,
+  lemon_squeezy_id text,
+  order_id bigint,
+  customer_id bigint,
+  product_id bigint,
+  variant_id bigint,
+  subscription_id bigint,
+  status text NOT NULL DEFAULT 'inactive'::text,
+  plan_name text NOT NULL,
+  plan_type text NOT NULL,
+  current_period_start timestamp with time zone,
+  current_period_end timestamp with time zone,
+  trial_ends_at timestamp with time zone,
+  billing_anchor timestamp with time zone,
+  urls jsonb,
+  renews_at timestamp with time zone,
+  ends_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT user_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.user_usage (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL UNIQUE,
+  quizzes_created integer DEFAULT 0,
+  quizzes_limit integer DEFAULT 3,
+  current_period_start timestamp with time zone DEFAULT now(),
+  current_period_end timestamp with time zone DEFAULT (now() + '1 mon'::interval),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_usage_pkey PRIMARY KEY (id),
+  CONSTRAINT user_usage_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.webhook_events (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  event_name text NOT NULL,
+  processed boolean DEFAULT false,
+  body jsonb NOT NULL,
+  processing_error text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT webhook_events_pkey PRIMARY KEY (id)
+);

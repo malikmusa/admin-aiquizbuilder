@@ -1,0 +1,35 @@
+
+
+@import "tailwindcss";
+
+:root {
+  --primary-color: #f5773a;
+  --secondary-color: #3b505c;
+  --heading-color: #2f404a;
+  --some-background-color: #0c4a6e;
+
+  --background: #f0f4f8; /* A light grey-blue for general background */
+  --foreground: #2f404a; /* Heading color for general text */
+  --text-light: #3b505c; /* Secondary color for general text */
+  --text-dark: #ffffff; /* White for text on dark backgrounds */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0c4a6e; /* The provided background color */
+    --foreground: #ededed; /* Light text for dark mode */
+    --text-light: #ededed;
+    --text-dark: #2f404a;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Add a global border-radius for components */
+.rounded-component {
+  border-radius: 0.75rem; /* Tailwind's rounded-lg */
+}
