@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/page.tsx
 import Link from 'next/link';
 import { supabaseAdmin } from '../lib/supabase';
