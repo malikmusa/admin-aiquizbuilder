@@ -1,4 +1,5 @@
 // app/page.tsx
+import Link from 'next/link';
 import { supabaseAdmin } from '../lib/supabase';
 
 export const revalidate = 0; // always fresh
@@ -306,18 +307,18 @@ export default async function Page({
           Admin Panel
         </div>
         <nav>
-          <a href="/" style={styles.navItem}>
+          <Link href="/" style={styles.navItem}>
             👥 User Management
-          </a>
-          <a href="#" style={styles.navItemInactive}>
+          </Link>
+          <Link href="#" style={styles.navItemInactive}>
             📊 Analytics
-          </a>
-          <a href="#" style={styles.navItemInactive}>
+          </Link>
+          <Link href="#" style={styles.navItemInactive}>
             ⚙️ Settings
-          </a>
-          <a href="#" style={styles.navItemInactive}>
+          </Link>
+          <Link href="#" style={styles.navItemInactive}>
             🔒 Security
-          </a>
+          </Link>
         </nav>
       </aside>
 
@@ -350,9 +351,9 @@ export default async function Page({
               <button type="submit" style={styles.button}>
                 Search
               </button>
-              <a href="/" style={styles.buttonSecondary}>
+              <Link href="/" style={styles.buttonSecondary}>
                 Clear Filters
-              </a>
+              </Link>
             </form>
           </div>
 
