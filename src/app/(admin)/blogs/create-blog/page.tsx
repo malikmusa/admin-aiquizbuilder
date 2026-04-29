@@ -1,12 +1,12 @@
  
-import BlogTable from '@/app/components/Blog/BlogTable'
+import CreateBlogForm from '@/app/components/Blog/BlogForm'
 import React from 'react' 
 
 function page() {
 
   return (
     <div>
-   <BlogTable  />
+      <CreateBlogForm  />
     </div>
   )
 }

@@ -26,6 +26,7 @@ export default function CreateBlogForm() {
     categoryId: "",
     tagIds: [] as string[],
     readTime: "",
+    isPublished: false,
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -199,6 +200,7 @@ export default function CreateBlogForm() {
 
       // ── Numeric fields — Prisma expects integers, not strings ────────────────
       formData.append("categoryId", form.categoryId);
+      formData.append("isPublished", String(form.isPublished));
       if (form.readTime) {
         formData.append("readTime", String(Number(form.readTime)));
       }
@@ -451,6 +453,26 @@ export default function CreateBlogForm() {
                       </span>
                     ) : null;
                   })}
+                </div>
+                  {/* Publish toggle */}
+                <div className="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3 bg-gray-50/40">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Published</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Toggle to make this post visible to the public</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, isPublished: !prev.isPublished }))}
+                    className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
+                      form.isPublished ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                        form.isPublished ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
 
