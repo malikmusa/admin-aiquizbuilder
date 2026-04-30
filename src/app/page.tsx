@@ -7,10 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 // Static credentials
-// const ADMIN_EMAIL = 'malikmusa1997@gmail.com';
-// const ADMIN_PASSWORD = 'Musa@system1997!';
-const ADMIN_EMAIL = 'shahmeer@binarymarvels.com';
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_EMAIL = 'malikmusa1997@gmail.com';
+const ADMIN_PASSWORD = 'Musa@system1997!';
 
  
 
