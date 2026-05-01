@@ -1,6 +1,7 @@
 // app/(admin)/layout.tsx
 import Sidebar from '../components/SideBar/Sidebar';
 import '../globals.css';
+import "quill/dist/quill.snow.css";
 import type { Metadata } from 'next'; 
 
 export const metadata: Metadata = {
