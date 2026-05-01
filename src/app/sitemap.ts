@@ -21,17 +21,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/use-cases/marketing", 0.7, "monthly"],
   ];
 
-  // OPTIONAL: include public quiz pages
-  // const publicQuizzes = await fetchPublicQuizzes(); // slug, updatedAt
-  // const quizEntries = publicQuizzes.map(q => ({
-  //   url: `${siteUrl}/quiz/${q.id}`,
-  //   lastModified: new Date(q.updatedAt),
-  //   changeFrequency: "weekly" as const,
-  //   priority: 0.4,
-  // }));
+  
 
   const pages: MetadataRoute.Sitemap = [
-    ...staticRoutes.map(([path, priority, cf]) => ({
+    ...staticRoutes?.map(([path, priority, cf]) => ({
       url: `${siteUrl}${path}`,
       lastModified: now,
       changeFrequency: cf,
