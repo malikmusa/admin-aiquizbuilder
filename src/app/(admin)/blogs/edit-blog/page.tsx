@@ -1,12 +1,12 @@
-import EditBlogForm from '@/app/components/Blog/EditFOrm'
-import React from 'react'
+import React, { Suspense } from 'react';
+import EditBlogForm from '@/app/components/Blog/EditFOrm';
 
-function page() {
+function Page() {
   return (
-    <div>
-    <EditBlogForm/>
-    </div>
-  )
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditBlogForm />
+    </Suspense>
+  );
 }
 
-export default page
+export default Page;

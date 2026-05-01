@@ -324,6 +324,7 @@ export default function CreateBlogForm() {
                     Content <span className="req">*</span>
                   </label>
                   <TextEditor setForm={setForm} />
+
                 </div>
               </div>
 

@@ -1,8 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
  
 'use client';
 
 // app/page.tsx
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 

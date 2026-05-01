@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { formatDate } from '@/lib/utils';
