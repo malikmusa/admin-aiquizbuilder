@@ -5,8 +5,6 @@
 import { useEffect, useRef } from "react";
 import { useQuill } from "react-quilljs";
 // @ts-ignore
-import "quill/dist/quill.snow.css";
-
 export default function TextEditor({
   setForm,
   value,
