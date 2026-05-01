@@ -4,8 +4,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CreateCategoryModal from "../Category/CategoryModal";
-import RichTextEditor from "../RichTextEditor/RichTextEditor";
 import CreateTagModal from "../Tag/TagModal";
+import TextEditor from "./TextEditor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Category {
@@ -399,10 +399,11 @@ console.log({blogId})
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Content <span className="text-red-500">*</span>
                   </label>
-                  <RichTextEditor
+                  <TextEditor  setForm={setForm}           value={form.content} />
+                  {/* <RichTextEditor
                     value={form.content}
                     onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
-                  />
+                  /> */}
                 </div>
               </div>
             </div>

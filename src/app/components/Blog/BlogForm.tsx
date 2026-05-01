@@ -4,9 +4,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CreateCategoryModal from "../Category/CategoryModal";
-import RichTextEditor from "../RichTextEditor/RichTextEditor";
+// import RichTextEditor from "../RichTextEditor/RichTextEditor";
 import CreateTagModal from "../Tag/TagModal";
-
+import TextEditor from "./TextEditor";
 interface Category {
   id: string; // ← was number
   name: string;
@@ -15,7 +15,6 @@ interface Category {
 export default function CreateBlogForm() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [categories, setCategories] = useState<any>([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [form, setForm] = useState({
@@ -184,6 +183,9 @@ export default function CreateBlogForm() {
   };
   const onDragLeave = () => setDragging(false);
 
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -240,6 +242,7 @@ export default function CreateBlogForm() {
       setLoading(false);
     }
   };
+
 
   return (
     <>
@@ -320,12 +323,7 @@ export default function CreateBlogForm() {
                   <label className="cbf-label">
                     Content <span className="req">*</span>
                   </label>
-                  <RichTextEditor
-                    value={form.content}
-                    onChange={(html) =>
-                      setForm((prev) => ({ ...prev, content: html }))
-                    }
-                  />
+                  <TextEditor setForm={setForm} />
                 </div>
               </div>
 
@@ -398,11 +396,9 @@ export default function CreateBlogForm() {
                     />
                   </div>
                 </div>
-
                 {/* ── Tags ── */}
                 <div className="cbf-field" style={{ marginTop: 18 }}>
                   <label className="cbf-label">Tags</label>
-
                   <div
                     className="cbf-cat-row"
                     style={{
@@ -454,15 +450,24 @@ export default function CreateBlogForm() {
                     ) : null;
                   })}
                 </div>
-                  {/* Publish toggle */}
+                {/* Publish toggle */}
                 <div className="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3 bg-gray-50/40">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Published</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Toggle to make this post visible to the public</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      Published
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Toggle to make this post visible to the public
+                    </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, isPublished: !prev.isPublished }))}
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        isPublished: !prev.isPublished,
+                      }))
+                    }
                     className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
                       form.isPublished ? "bg-blue-600" : "bg-gray-200"
                     }`}
@@ -515,7 +520,6 @@ export default function CreateBlogForm() {
                     <p className="cbf-drop-sub">PNG, JPG, WebP — max 5 MB</p>
                   </div>
                 )}
-
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -527,8 +531,6 @@ export default function CreateBlogForm() {
                   }}
                 />
               </div>
-
-              {/* ── Footer ── */}
               <div className="cbf-footer">
                 <div>
                   {error && <p className="cbf-feedback error">⚠ {error}</p>}
