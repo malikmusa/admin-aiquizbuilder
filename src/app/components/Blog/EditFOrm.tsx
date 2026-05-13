@@ -28,6 +28,14 @@ interface BlogData {
   categoryId: string;
   readTime?: number;
   isPublished: boolean;
+
+  MetaData?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string;
+    canonicalUrl?: string;
+  } | null;
+
   Image?: { id: string; url: string } | null;
   Tags?: { Tag: Tag }[];
   Category?: Category | null;
@@ -36,9 +44,9 @@ interface BlogData {
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function EditBlogForm() {
   const router = useRouter();
-const searchParams = useSearchParams();
-const blogId = searchParams.get("id");
-console.log({blogId})
+  const searchParams = useSearchParams();
+  const blogId = searchParams.get("id");
+  console.log({ blogId });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Page fetch state ──────────────────────────────────────────────────────
@@ -67,6 +75,11 @@ console.log({blogId})
     tagIds: [] as string[],
     readTime: "",
     isPublished: false,
+
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
+    canonicalUrl: "",
   });
 
   // ── Image ─────────────────────────────────────────────────────────────────
@@ -82,7 +95,11 @@ console.log({blogId})
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const toSlug = (value: string) =>
-    value.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
 
   const hydrateForm = (blog: BlogData) => {
     setForm({
@@ -94,10 +111,17 @@ console.log({blogId})
       tagIds: blog.Tags?.map((t) => t.Tag.id) ?? [],
       readTime: blog.readTime ? String(blog.readTime) : "",
       isPublished: blog.isPublished ?? false,
+
+      metaTitle: blog.MetaData?.metaTitle ?? "",
+      metaDescription: blog.MetaData?.metaDescription ?? "",
+      metaKeywords: blog.MetaData?.metaKeywords ?? "",
+      canonicalUrl: blog.MetaData?.canonicalUrl ?? "",
     });
     if (blog.Image?.url) {
       setExistingImageUrl(blog.Image.url);
-      setImagePreview(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${blog.Image.url}`);
+      setImagePreview(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/${blog.Image.url}`,
+      );
     }
   };
 
@@ -113,7 +137,9 @@ console.log({blogId})
       setPageLoading(true);
       setPageError(null);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/blog/${blogId}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/blog/by/${blogId}`,
+        );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         hydrateForm(json.data ?? json);
@@ -129,12 +155,15 @@ console.log({blogId})
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/category`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/category`,
+      );
       if (!res.ok) throw new Error("Failed to fetch categories");
       const response: { data: Category[] } = await res.json();
       const data = response?.data ?? [];
       setCategories(data);
-      if (initialCategoriesRef.current.length === 0) initialCategoriesRef.current = data;
+      if (initialCategoriesRef.current.length === 0)
+        initialCategoriesRef.current = data;
     } catch (err) {
       console.error("Could not load categories:", err);
     } finally {
@@ -171,7 +200,9 @@ console.log({blogId})
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -200,14 +231,22 @@ console.log({blogId})
     await fetchTags();
     setForm((prev) => ({
       ...prev,
-      tagIds: prev.tagIds.includes(newTag.id) ? prev.tagIds : [...prev.tagIds, newTag.id],
+      tagIds: prev.tagIds.includes(newTag.id)
+        ? prev.tagIds
+        : [...prev.tagIds, newTag.id],
     }));
   };
 
   // ── Image handlers ────────────────────────────────────────────────────────
   const handleFile = (file: File) => {
-    if (!file.type.startsWith("image/")) { setError("Please upload a valid image file."); return; }
-    if (file.size > 5 * 1024 * 1024) { setError("Image must be under 5 MB."); return; }
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a valid image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5 MB.");
+      return;
+    }
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
@@ -237,26 +276,44 @@ console.log({blogId})
 
     try {
       const formData = new FormData();
+
+formData.append(
+  "metaData",
+  JSON.stringify({
+    metaTitle: form.metaTitle,
+    metaDescription: form.metaDescription,
+    metaKeywords: form.metaKeywords,
+    canonicalUrl: form.canonicalUrl,
+  })
+);
+
       formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("content", form.content);
       formData.append("slug", form.slug);
       formData.append("categoryId", form.categoryId);
       formData.append("isPublished", String(form.isPublished));
-      if (form.readTime) formData.append("readTime", String(Number(form.readTime)));
+      if (form.readTime)
+        formData.append("readTime", String(Number(form.readTime)));
 
       const cleanTagIds = form.tagIds.filter((id) => id != null && id !== "");
-      if (cleanTagIds.length > 0) formData.append("tagIds", JSON.stringify(cleanTagIds));
+      if (cleanTagIds.length > 0)
+        formData.append("tagIds", JSON.stringify(cleanTagIds));
 
       if (imageFile) formData.append("file", imageFile);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/blog/${blogId}`, {
-        method: "PUT",
-        body: formData,
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/blog/${blogId}`,
+        {
+          method: "PUT",
+          body: formData,
+        },
+      );
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ message: "Request failed" }));
+        const data = await res
+          .json()
+          .catch(() => ({ message: "Request failed" }));
         throw new Error(data.error || data.message || "Something went wrong.");
       }
 
@@ -275,8 +332,21 @@ console.log({blogId})
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-gray-400">
           <svg className="w-8 h-8 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-            <path className="opacity-80" d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <circle
+              className="opacity-20"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="3"
+            />
+            <path
+              className="opacity-80"
+              d="M12 2a10 10 0 0110 10"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
           </svg>
           <p className="text-sm">Loading blog…</p>
         </div>
@@ -319,7 +389,6 @@ console.log({blogId})
 
       <div className="min-h-screen bg-gray-50 px-4 py-10 md:px-10 font-sans">
         <div className="max-w-3xl mx-auto">
-
           {/* Page header */}
           <div className="mb-6">
             <button
@@ -328,24 +397,109 @@ console.log({blogId})
               className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-4 transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
-                <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M10 3L5 8l5 5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               Back to Blogs
             </button>
-            <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">Content Management</p>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Edit Blog Post</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">
+              Content Management
+            </p>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Edit Blog Post
+            </h1>
             <div className="mt-3 h-px bg-gray-200" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Card 0: Meta Details */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/60">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                  Meta Details
+                </p>
+              </div>
+
+              <div className="px-6 py-5 space-y-5">
+                {/* Meta Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Meta Title
+                  </label>
+
+                  <input
+                    type="text"
+                    name="metaTitle"
+                    value={form.metaTitle}
+                    onChange={handleChange}
+                    placeholder="Enter SEO title..."
+                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  />
+                </div>
+
+                {/* Meta Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Meta Description
+                  </label>
+
+                  <textarea
+                    name="metaDescription"
+                    value={form.metaDescription}
+                    onChange={handleChange}
+                    rows={3}
+                    placeholder="Enter SEO description..."
+                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all resize-none"
+                  />
+                </div>
+
+                {/* Meta Keywords */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Meta Keywords
+                  </label>
+
+                  <input
+                    type="text"
+                    name="metaKeywords"
+                    value={form.metaKeywords}
+                    onChange={handleChange}
+                    placeholder="nextjs, react, seo"
+                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  />
+                </div>
+
+                {/* Canonical URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Canonical URL
+                  </label>
+
+                  <input
+                    type="url"
+                    name="canonicalUrl"
+                    value={form.canonicalUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/blog/my-post"
+                    className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* Card 1: Core Details */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/60">
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Core Details</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                  Core Details
+                </p>
               </div>
               <div className="px-6 py-5 space-y-5">
-
                 {/* Title */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -363,7 +517,9 @@ console.log({blogId})
 
                 {/* Slug */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Slug</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Slug
+                  </label>
                   <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
                     <span className="px-3 py-2.5 bg-gray-50 text-gray-400 text-sm border-r border-gray-200 select-none whitespace-nowrap">
                       /blog/
@@ -376,7 +532,9 @@ console.log({blogId})
                       placeholder="auto-generated-slug"
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1.5">Auto-generated from title, or override manually.</p>
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    Auto-generated from title, or override manually.
+                  </p>
                 </div>
 
                 {/* Description */}
@@ -400,7 +558,7 @@ console.log({blogId})
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Content <span className="text-red-500">*</span>
                   </label>
-                  <TextEditor  setForm={setForm}           value={form.content} />
+                  <TextEditor setForm={setForm} value={form.content} />
                   {/* <RichTextEditor
                     value={form.content}
                     onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
@@ -412,10 +570,11 @@ console.log({blogId})
             {/* Card 2: Taxonomy & Meta */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/60">
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Taxonomy & Meta</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                  Taxonomy & Meta
+                </p>
               </div>
               <div className="px-6 py-5 space-y-5">
-
                 {/* Category + Read Time */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -432,10 +591,14 @@ console.log({blogId})
                         disabled={categoriesLoading}
                       >
                         <option value="">
-                          {categoriesLoading ? "Loading…" : "Select a category…"}
+                          {categoriesLoading
+                            ? "Loading…"
+                            : "Select a category…"}
                         </option>
                         {categories.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
                         ))}
                       </select>
                       <button
@@ -449,7 +612,9 @@ console.log({blogId})
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Read Time (minutes)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Read Time (minutes)
+                    </label>
                     <input
                       className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
                       name="readTime"
@@ -464,12 +629,16 @@ console.log({blogId})
 
                 {/* Tags */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Tags</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Tags
+                  </label>
                   <div className="flex flex-wrap items-start gap-2">
                     {tagsLoading ? (
                       <p className="text-xs text-gray-400">Loading tags…</p>
                     ) : tags.length === 0 ? (
-                      <p className="text-xs text-gray-400">No tags yet — create one.</p>
+                      <p className="text-xs text-gray-400">
+                        No tags yet — create one.
+                      </p>
                     ) : (
                       tags.map((tag) => {
                         const active = form.tagIds.includes(tag.id);
@@ -501,10 +670,15 @@ console.log({blogId})
                   {/* New tag badges */}
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {form.tagIds.map((id) => {
-                      const isNew = !initialTagsRef.current.find((t) => t.id === id);
+                      const isNew = !initialTagsRef.current.find(
+                        (t) => t.id === id,
+                      );
                       const tag = tags.find((t) => t.id === id);
                       return isNew && tag ? (
-                        <span key={id} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-full">
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-full"
+                        >
                           ✦ New — &quot;{tag.name}&quot;
                         </span>
                       ) : null;
@@ -515,12 +689,21 @@ console.log({blogId})
                 {/* Publish toggle */}
                 <div className="flex items-center justify-between border border-gray-200 rounded-lg px-4 py-3 bg-gray-50/40">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Published</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Toggle to make this post visible to the public</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      Published
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Toggle to make this post visible to the public
+                    </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, isPublished: !prev.isPublished }))}
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        isPublished: !prev.isPublished,
+                      }))
+                    }
                     className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
                       form.isPublished ? "bg-blue-600" : "bg-gray-200"
                     }`}
@@ -538,7 +721,9 @@ console.log({blogId})
             {/* Card 3: Cover Image */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/60">
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Cover Image</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                  Cover Image
+                </p>
               </div>
               <div className="px-6 py-5">
                 {imagePreview ? (
@@ -580,15 +765,23 @@ console.log({blogId})
                         : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
                     }`}
                     onDrop={onDrop}
-                    onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragging(true);
+                    }}
                     onDragLeave={() => setDragging(false)}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <div className="text-3xl mb-2">🖼</div>
                     <p className="text-sm text-gray-600">
-                      Drop an image here, or <span className="font-semibold text-blue-600">browse</span>
+                      Drop an image here, or{" "}
+                      <span className="font-semibold text-blue-600">
+                        browse
+                      </span>
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP — max 5 MB</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      PNG, JPG, WebP — max 5 MB
+                    </p>
                   </div>
                 )}
                 <input
@@ -596,7 +789,10 @@ console.log({blogId})
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFile(file); }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFile(file);
+                  }}
                 />
               </div>
             </div>
@@ -630,9 +826,26 @@ console.log({blogId})
                 >
                   {loading ? (
                     <>
-                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                        <path className="opacity-80" d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      <svg
+                        className="w-4 h-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-20"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                        />
+                        <path
+                          className="opacity-80"
+                          d="M12 2a10 10 0 0110 10"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
                       </svg>
                       Saving…
                     </>
@@ -642,7 +855,6 @@ console.log({blogId})
                 </button>
               </div>
             </div>
-
           </form>
         </div>
       </div>
