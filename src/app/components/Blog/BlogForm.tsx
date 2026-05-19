@@ -26,6 +26,10 @@ export default function CreateBlogForm() {
     tagIds: [] as string[],
     readTime: "",
     isPublished: false,
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
+    canonicalUrl: "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -183,9 +187,6 @@ export default function CreateBlogForm() {
   };
   const onDragLeave = () => setDragging(false);
 
-
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -193,6 +194,12 @@ export default function CreateBlogForm() {
 
     try {
       const formData = new FormData();
+
+      // ── Meta data fields ──────────────────────────────────────────────────────────
+      formData.append("canonicalUrl", form.canonicalUrl);
+      formData.append("metaTitle", form.metaTitle);
+      formData.append("metaDescription", form.metaDescription);
+      formData.append("metaKeywords", form.metaKeywords);
 
       // ── Core fields ──────────────────────────────────────────────────────────
       formData.append("title", form.title);
@@ -243,7 +250,6 @@ export default function CreateBlogForm() {
     }
   };
 
-
   return (
     <>
       {showCategoryModal && (
@@ -269,6 +275,71 @@ export default function CreateBlogForm() {
 
           <form onSubmit={handleSubmit}>
             <div className="cbf-card">
+              {/* ── Section 1: Meta data Details ── */}
+              <div className="cbf-section">
+                <p className="cbf-section-label">Meta Details</p>
+
+                <div className="cbf-field">
+                  <label className="cbf-label">
+                    Meta Title <span className="req">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    className="cbf-input"
+                    name="metaTitle"
+                    value={form.metaTitle}
+                    onChange={handleChange}
+                    placeholder="Enter meta title..."
+                    required
+                  />
+                </div>
+
+                <div className="cbf-field">
+                  <label className="cbf-label">
+                    Meta Description <span className="req">*</span>
+                  </label>
+
+                  <textarea
+                    className="cbf-textarea"
+                    name="metaDescription"
+                    value={form.metaDescription}
+                    onChange={handleChange}
+                    placeholder="Enter meta description..."
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                <div className="cbf-field">
+                  <label className="cbf-label">Meta Keywords</label>
+
+                  <input
+                    type="text"
+                    className="cbf-input"
+                    name="metaKeywords"
+                    value={form.metaKeywords}
+                    onChange={handleChange}
+                    placeholder="seo, blog, nextjs"
+                  />
+                </div>
+
+                <div className="cbf-field">
+                  <label className="cbf-label">
+                    Canonical URL <span className="req">*</span>
+                  </label>
+
+                  <input
+                    type="url"
+                    className="cbf-input"
+                    name="canonicalUrl"
+                    value={form.canonicalUrl}
+                    onChange={handleChange}
+                    placeholder="https://example.com/blog/my-post"
+                    required
+                  />
+                </div>
+              </div>
               {/* ── Section 1: Core Details ── */}
               <div className="cbf-section">
                 <p className="cbf-section-label">Core Details</p>
@@ -324,7 +395,6 @@ export default function CreateBlogForm() {
                     Content <span className="req">*</span>
                   </label>
                   <TextEditor setForm={setForm} />
-
                 </div>
               </div>
 
