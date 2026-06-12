@@ -17,7 +17,7 @@ export default function TextEditorClient({
 
   return (
     <div>
-      <div ref={containerRef} style={{ minHeight: 300 }} />
+      <div ref={containerRef} />
       {picker && (
         <TablePicker
           top={picker.top}
