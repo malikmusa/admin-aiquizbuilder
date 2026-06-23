@@ -1,6 +1,9 @@
 // app/layout.tsx
-import './globals.css'; 
+import './globals.css';
 import "quill/dist/quill.snow.css";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import "quill-table-better/dist/quill-table-better.css";
  
 export default function RootLayout({
   children,
